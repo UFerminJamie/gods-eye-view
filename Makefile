@@ -1,3 +1,5 @@
+# Discover Docker Desktop even when a shell or Finder has a minimal PATH.
+export PATH := $(PATH):$(HOME)/.docker/bin:/Applications/Docker.app/Contents/Resources/bin
 COMPOSE = docker compose
 .PHONY: install start stop restart status logs update rebuild test browser-test track-test dev clean
 install: rebuild start

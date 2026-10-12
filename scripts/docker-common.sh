@@ -1,5 +1,7 @@
 #!/bin/bash
 set -euo pipefail
+# Docker Desktop may install its CLI without updating Terminal or Finder PATH.
+export PATH="$PATH:$HOME/.docker/bin:/Applications/Docker.app/Contents/Resources/bin"
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 command -v docker >/dev/null || { echo "Install Docker Desktop from https://www.docker.com/products/docker-desktop/" >&2; exit 1; }
 docker compose version >/dev/null || { echo "Docker Compose is unavailable." >&2; exit 1; }

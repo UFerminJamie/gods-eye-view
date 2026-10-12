@@ -19,7 +19,7 @@ open http://localhost:4173
 
 Run `make start`, `make stop`, `make restart`, `make status`, or `make logs` from the checkout. Ctrl-C stops log following without stopping the application. `make rebuild` rebuilds changed layers; `make start` then recreates a container whose image changed. `make clean` stops production and development project containers and removes their networks while preserving all volumes. None of these commands prune global Docker resources or delete volumes.
 
-Double-click `Start-Gods-Eye-View.command` in Finder. It checks Docker, starts Desktop when its engine is stopped, waits for health and opens the published localhost URL. On macOS a new Terminal session should inherit Docker Desktop's CLI path. If `docker` is missing, enable Docker Desktop's supported CLI installation and reopen Terminal. The launcher displays an error and waits for Return if startup fails.
+Double-click `Start-Gods-Eye-View.command` in Finder. It checks Docker, starts Desktop when its engine is stopped, waits for health and opens the published localhost URL. Make commands and the launcher also search `$HOME/.docker/bin` and `/Applications/Docker.app/Contents/Resources/bin`, so they work when Terminal or Finder omits Docker from PATH. For direct `docker` commands, enable Docker Desktop's supported CLI installation or add `$HOME/.docker/bin` to your shell PATH. The launcher displays an error and waits for Return if startup fails.
 
 ## Ports and resources
 
