@@ -72,8 +72,31 @@ function runTests(args) {
 
 export function runUnitTests() {
   const plan = buildUnitTestPlan(discoverUnitTestFiles());
-  const parallelStatus = runTests(['--test', ...plan.parallel]);
+  // Container CPU limits need bounded concurrency to avoid scheduler timeouts.
+  const concurrency = process.env.GEV_TEST_CONCURRENCY;
+  if (concurrency && !/^[1-9]\d*$/.test(concurrency)) {
+    throw new Error('GEV_TEST_CONCURRENCY must be a positive integer');
+  }
+  // These upstream budgets use real clocks; run them without competing test
+  // files in a CPU-limited container, preserving their original assertions.
+  const timingFiles = concurrency
+    ? [
+        'src/data/analystEngine.test.mjs',
+        'src/data/cctvMediaRange.test.mjs',
+        'src/data/trafficTiming.test.mjs',
+      ].filter((file) => plan.parallel.includes(file))
+    : [];
+  const parallelStatus = runTests([
+    '--test',
+    ...(concurrency ? [`--test-concurrency=${concurrency}`] : []),
+    ...plan.parallel.filter((file) => !timingFiles.includes(file)),
+  ]);
   if (parallelStatus !== 0) return parallelStatus;
+  for (const file of timingFiles) {
+    console.log(`[unit] Serialized timing probe: ${file}`);
+    const status = runTests(['--test', file]);
+    if (status !== 0) return status;
+  }
 
   // The GC-bracketed budgets are calibrated on Node 24 and are meaningless on
   // other allocators. A contributor's suite must stay green on any supported

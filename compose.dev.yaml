@@ -1,0 +1,42 @@
+# Separate project, image and volumes: production data and dependencies stay isolated.
+name: gods-eye-view-dev
+services:
+  app:
+    image: gods-eye-view:dev
+    build:
+      context: .
+      target: development
+    init: true
+    restart: unless-stopped
+    ports:
+      - '127.0.0.1:${GEV_DEV_PORT:-4175}:4173'
+    environment:
+      GEV_CONFIG_DIR: /config
+      GEV_PUBLIC_PORT: ${GEV_DEV_PORT:-4175}
+    command: [node, docker/serve.mjs, --dev]
+    volumes:
+      - .:/app
+      - dependencies:/app/node_modules
+      - config:/config
+      - cache:/app/.gev-cache
+      - logs:/app/.gev-logs
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: ${GEV_MEMORY_LIMIT:-2g}
+    cpus: ${GEV_CPUS:-2}
+    stop_grace_period: 30s
+    healthcheck:
+      test: [CMD, node, docker/healthcheck.mjs]
+      interval: 10s
+      timeout: 5s
+      start_period: 120s
+      retries: 6
+    logging:
+      options:
+        max-size: '10m'
+        max-file: '3'
+volumes:
+  dependencies:
+  config:
+  cache:
+  logs:

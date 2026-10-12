@@ -1,3 +1,103 @@
+# God's Eye View — Docker on macOS
+
+A maintained deployment fork of [Bilawal Sidhu's God's Eye View](https://github.com/bilawalsidhu/gods-eye-view): a browser-based spatial intelligence globe combining aircraft, satellites, earthquakes, public cameras, weather and infrastructure. The application and rendering features are upstream work. This fork adds Docker packaging, a macOS launcher, isolated development, persistent provider settings and deployment verification.
+
+## Quick start
+
+Install and start [Docker Desktop](https://www.docker.com/products/docker-desktop/) for your Mac's architecture and install Git. Node and npm run entirely inside Docker.
+
+```bash
+git clone https://github.com/UFerminJamie/gods-eye-view.git ~/Projects/gods-eye-view
+cd ~/Projects/gods-eye-view
+git switch feature/docker-macos-deployment
+make install
+open http://localhost:4173
+```
+
+The feature branch contains this deployment until its PR is reviewed and merged into this fork's `main`. No API keys are required. Start with **EXPLORE MANUALLY**, open **DATA LAYERS**, and try Flights, Satellites or Earthquakes. Open **VISUAL PRESETS** to change map sources and sensor effects. **POWER UP** adds optional providers; saves remain in a Docker volume and trigger an asset rebuild and page reload.
+
+## Deployment contributions
+
+- Official digest-pinned Node 24.14.0 base with ARM64 and AMD64 variants; multi-stage builds and locked `npm ci` dependencies.
+- Production assets served with upstream Vite preview provider hooks, including API routes; a local Node ingress preserves credential safety checks.
+- Loopback host publishing, non-root execution, dropped capabilities, health checks, graceful shutdown, bounded Docker logs and configurable resource limits.
+- Named volumes for credentials, provider caches and voice logs; separate development image, dependency volume and port with polling and HMR forwarding.
+- Make commands, double-click launcher, safe upstream merge workflow, diagnostics and a separate Chromium QA image.
+- [Docker guide](DOCKER_MAC_GUIDE.md), [architecture](ARCHITECTURE.md), [contribution record](CONTRIBUTIONS.md), [user guide](USER_GUIDE.md) and [verification results](DEPLOYMENT_VERIFICATION.md).
+
+## Features and requirements
+
+| Available without credentials                                    | Optional providers                                                                |
+| ---------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| Esri/OSM map, navigation, sensor looks and HUD                   | Google photorealistic 3D and place search: Google key or eligible Cesium ion plan |
+| Aircraft through supported public fallback feeds, military ADS-B | OpenSky registered client for its authenticated feed                              |
+| Satellites/ISS propagated from orbital elements, USGS quakes     | AISStream registration for ships                                                  |
+| Public cameras, weather, static infrastructure, scenes           | OpenAI API voice: metered; FIRMS, TomTom and Mapillary registered access          |
+
+A satellite position is calculated, traffic may be simulated, camera poses are estimates, and feeds may be delayed or unavailable. NVG/FLIR are visual effects, not measurements from physical sensors. See [USER_GUIDE.md](USER_GUIDE.md) and preserved [DATA_SOURCES.md](DATA_SOURCES.md).
+
+## Technology and architecture
+
+JavaScript ES modules, CesiumJS/WebGL, Vite 6, Node 24, satellite.js, HLS.js, Mapillary, Docker and Compose. The host browser performs GPU rendering; the Linux container serves assets and provider APIs.
+
+```mermaid
+flowchart LR
+  B[Mac browser: Cesium frontend] -->|localhost:4173| I
+  subgraph D[Docker container: non-root Node]
+    I[Local ingress] -->|loopback:4174| S[Vite production assets and provider APIs]
+    S --> C[(Persistent config)]
+    S --> V[(Cache and voice logs)]
+  end
+  S --> P[External data providers]
+  B --> P
+  B --> L[(Browser localStorage: scenes and preferences)]
+```
+
+## Daily commands
+
+| Command                        | Purpose                                                     |
+| ------------------------------ | ----------------------------------------------------------- |
+| `make install`                 | Build and launch, wait for health                           |
+| `make start` / `make stop`     | Start / stop this deployment                                |
+| `make restart` / `make status` | Restart / show health and URL                               |
+| `make logs`                    | Follow bounded container logs; Ctrl-C exits                 |
+| `make rebuild`                 | Rebuild changed image layers                                |
+| `make update`                  | Refuse dirty work, fetch and merge upstream, build and test |
+| `make test`                    | Unit tests, build and running API health                    |
+| `make browser-test`            | Build QA image and smoke-test running production app        |
+| `make dev`                     | Isolated hot reload at localhost:4175                       |
+| `make clean`                   | Remove project containers/networks; keep volumes            |
+
+Double-click `Start-Gods-Eye-View.command` to start Docker Desktop if necessary, wait for health, and open the actual published URL. Provider secrets are never needed at image-build time. Compose's root `.env` is for host settings such as `GEV_PORT=4180`; provider credentials live in `/config/.env` inside the config volume. Browser-exposed Google/Cesium/Mapillary credentials require provider restrictions.
+
+## Testing, screenshots and limitations
+
+[DEPLOYMENT_VERIFICATION.md](DEPLOYMENT_VERIFICATION.md) records executed checks, measured performance and remaining gaps. Browser QA artifacts are generated locally under ignored `qa-artifacts/`.
+
+![Actual Docker deployment: keyless globe](docs/media/docker/keyless-globe.png)
+
+Captured from this deployment after choosing Explore Manually in Chromium on Apple M4/Metal. Application UI: Bilawal Sidhu; map imagery: Esri, with attribution retained in the screenshot. Upstream media below remains attributed to the original application; it is not evidence of this deployment's paid-provider functionality.
+
+This is a local single-user deployment using the upstream preview middleware, not a hardened public hosting service. Keep host publishing on `127.0.0.1`; do not publish the credential broker on a LAN or tunnel. macOS Keychain/Codex OAuth and USB radio devices are not forwarded into Docker. Optional paid providers are not activated automatically.
+
+## Troubleshooting and future work
+
+Start Docker Desktop when the socket is unavailable. For occupied ports, set `GEV_PORT=4180` in an ignored `.env` and run `make start`; do not stop unrelated processes. For a blank globe, check browser WebGL/hardware acceleration and try OSM in the map tray. A healthy container does not guarantee that external providers are reachable. See [the detailed troubleshooting guide](DOCKER_MAC_GUIDE.md#troubleshooting).
+
+Future work: native Intel Mac validation, provider-specific opt-in integration tests, authenticated remote hosting, and separating upstream production serving from Vite when upstream provides a stable standalone server. No rendering system changes or performance claims beyond measured deployment behavior are included.
+
+## License and acknowledgments
+
+Original application copyright © 2026 Bilawal Sidhu; source code is MIT licensed. Preserve [LICENSE](LICENSE), [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md), model attribution and [DATA_SOURCES.md](DATA_SOURCES.md). Bundled TeleGeography data and Vantor/GeoPera imagery have noncommercial restrictions; the MIT grant does not cover third-party datasets, models or live services.
+
+---
+
+## Preserved upstream README
+
+The original project documentation follows, including its original installation paths and media. For this fork's Docker setup, use the instructions above.
+
+<div align="center">
+
 <div align="center">
 
 # 🌐 God's Eye View

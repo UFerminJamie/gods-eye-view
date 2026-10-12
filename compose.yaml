@@ -1,0 +1,33 @@
+name: gods-eye-view
+services:
+  app:
+    image: gods-eye-view:local
+    build:
+      context: .
+      target: runtime
+    init: true
+    restart: unless-stopped
+    ports:
+      - '127.0.0.1:${GEV_PORT:-4173}:4173'
+    environment:
+      GEV_CONFIG_DIR: /config
+      GEV_PUBLIC_PORT: ${GEV_PORT:-4173}
+    volumes:
+      - config:/config
+      - cache:/app/.gev-cache
+      - logs:/app/.gev-logs
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: ${GEV_MEMORY_LIMIT:-2g}
+    cpus: ${GEV_CPUS:-2}
+    pids_limit: 256
+    stop_grace_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: '10m'
+        max-file: '3'
+volumes:
+  config:
+  cache:
+  logs:

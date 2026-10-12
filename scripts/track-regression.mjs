@@ -227,7 +227,9 @@ async function main() {
     console.log(`  Browser : ${chromeExecutable}\n`);
   }
 
-  const browser = await puppeteer.launch({
+  const browser = process.env.QA_BROWSER_WS_ENDPOINT
+    ? await puppeteer.connect({ browserWSEndpoint: process.env.QA_BROWSER_WS_ENDPOINT })
+    : await puppeteer.launch({
     headless: HEADFUL ? false : 'new',
     // This machine intermittently stalls single CDP calls past the 180 s
     // default under SwiftShader load (same hardening as qa-focus-evidence).

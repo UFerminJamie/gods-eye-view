@@ -61,6 +61,9 @@ export function isLocalMcpRequest({
 /** Vite plugin that mounts the local MCP server at /mcp. */
 export function localMcpPlugin({
   createServer = createLocalMcpServer,
+  // A local-only container relay can preserve the public Host port while
+  // its backend socket uses a private port. All other gates stay unchanged.
+  expectedHostPort = null,
   bodyTimeoutMs = BODY_TIMEOUT_MS,
 } = {}) {
   const handlers = new Map();
@@ -75,7 +78,7 @@ export function localMcpPlugin({
       if (
         !isLocalMcpRequest({
           remoteAddress: req.socket?.remoteAddress,
-          localPort: req.socket?.localPort,
+          localPort: expectedHostPort ?? req.socket?.localPort,
           host,
           origin: req.headers.origin,
           headers: req.headers,
